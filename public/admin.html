@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="si" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>Admin — YASIRU GEMS LIVE</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=Noto+Sans+Sinhala:wght@400;600&display=swap" rel="stylesheet" />
+  <script>try{var t=localStorage.getItem('ygl-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    main { max-width: 520px; padding-top: 30px; }
+    label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin: 14px 0 6px; }
+    input, select { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg2); color: var(--text); font: inherit; font-size: 16px; }
+    .btn { margin-top: 18px; width: 100%; padding: 13px; border: 0; border-radius: 12px; font: inherit; font-weight: 800; cursor: pointer; background: var(--gold); color: #1d1a14; }
+    .btn.ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    #msg { margin-top: 14px; font-size: 14px; min-height: 20px; }
+    .ok { color: var(--up); } .err { color: var(--down); }
+  </style>
+</head>
+<body>
+  <div class="glow"></div>
+  <header class="top"><a class="brand" href="/"><span class="brand-text">YASIRU <b>GEMS</b> <em>ADMIN</em></span></a></header>
+  <main>
+    <section class="card">
+      <h2>අද රන් මිල අතින් දාන්න</h2>
+      <p class="sub">Auto මිල වැරදි නම් විතරක් පාවිච්චි කරන්න. අද දවසට විතරයි — හෙට ආයෙත් auto වෙනවා.</p>
+
+      <label>Admin key</label>
+      <input id="key" type="password" placeholder="Render එකේ දාපු ADMIN_KEY" />
+
+      <label>22K පවුම (Rs)</label>
+      <input id="k22" type="number" inputmode="numeric" placeholder="e.g. 334000" />
+
+      <label>24K පවුම (Rs)</label>
+      <input id="k24" type="number" inputmode="numeric" placeholder="e.g. 363000" />
+
+      <button class="btn" id="save">Save කරන්න</button>
+      <button class="btn ghost" id="clear">අතින් දාපු මිල අයින් කරලා auto එකට යන්න</button>
+      <button class="btn ghost" id="refresh">හැම website එකම දැන් check කරන්න</button>
+      <div id="msg"></div>
+    </section>
+  </main>
+  <script>
+    const $ = id => document.getElementById(id);
+    try { $('key').value = localStorage.getItem('ygl-admin') || ''; } catch (e) {}
+    function msg(t, ok) { $('msg').className = ok ? 'ok' : 'err'; $('msg').textContent = t; }
+    async function call(path, body) {
+      try { localStorage.setItem('ygl-admin', $('key').value); } catch (e) {}
+      const r = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-key': $('key').value }, body: JSON.stringify(body || {}) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || r.status);
+      return j;
+    }
+    $('save').onclick = async () => {
+      try { await call('/api/admin/manual', { k22: $('k22').value, k24: $('k24').value }); msg('✓ Save උනා. Site එකේ විනාඩියක් ඇතුලත පෙන්වයි.', true); }
+      catch (e) { msg('✗ ' + e.message); }
+    };
+    $('clear').onclick = async () => {
+      try { await call('/api/admin/manual', { clear: true }); msg('✓ Auto මිලට මාරු උනා.', true); } catch (e) { msg('✗ ' + e.message); }
+    };
+    $('refresh').onclick = async () => {
+      msg('Check කරනවා…', true);
+      try {
+        const j = await call('/api/admin/refresh');
+        msg(`Market: 22K ${j.market && j.market.k22 || '—'} / 24K ${j.market && j.market.k24 || '—'}  ||  ` + j.shops.map(s => `${s.id}: ${s.k22 || '—'} / ${s.k24 || '—'}${s.error ? ' ⚠ ' + s.error : ''}`).join('  |  '), true);
+      } catch (e) { msg('✗ ' + e.message); }
+    };
+  </script>
+</body>
+</html>

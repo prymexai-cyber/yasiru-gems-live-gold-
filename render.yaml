@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: yasiru-gems-live
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: SHOP_REFRESH_MINUTES
+        value: "30"
+      - key: REFRESH_MINUTES
+        value: "5"
+      - key: ADMIN_KEY
+        generateValue: true
+      - key: CURRENCIES
+        value: usd,eur,gbp,aud,cad,jpy,inr,aed,sar,kwd
